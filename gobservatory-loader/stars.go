@@ -5,42 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fatih/structs"
+	"github.com/kkeuning/gobservatory/gobservatory-cms/content"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 )
 
-type Star struct {
-	Name            string   `json:"name"`
-	FullName        string   `json:"full_name"`
-	GithubId        int      `json:"github_id"`
-	HtmlUrl         string   `json:"html_url"`
-	Description     string   `json:"description"`
-	Private         bool     `json:"private"`
-	Fork            bool     `json:"fork"`
-	Language        string   `json:"language"`
-	OwnerLogin      string   `json:"owner_login"`
-	OwnerAvatarUrl  string   `json:"owner_avatar_url"`
-	OwnerUrl        string   `json:"owner_url"`
-	OwnerId         int      `json:"owner_id"`
-	OwnerType       string   `json:"owner_type"`
-	Homepage        string   `json:"homepage"`
-	Forks           int      `json:"forks"`
-	Size            int      `json:"size"`
-	StargazersCount int      `json:"stargazers_count"`
-	DefaultBranch   string   `json:"default_branch"`
-	StarredAt       string   `json:"starred_at"`
-	CreatedAt       string   `json:"created_at"`
-	UpdatedAt       string   `json:"updated_at"`
-	PushedAt        string   `json:"pushed_at"`
-	Tags            []string `json:"tags"`
-}
-
 type StarCollection struct {
-	Stars []Star `json:"data"`
+	Stars []content.Star `json:"data"`
 }
 
-func (sc *StarCollection) Contains(s Star) bool {
+func (sc *StarCollection) Contains(s content.Star) bool {
 	for _, star := range sc.Stars {
 		if star.GithubId == s.GithubId {
 			return true
@@ -49,7 +24,7 @@ func (sc *StarCollection) Contains(s Star) bool {
 	return false
 }
 
-func (s *Star) PostToPonzu(ponzuURL string, ponzuKey string) error {
+func PostToPonzu(s content.Star, ponzuURL string, ponzuKey string) error {
 	ponzuClient := &http.Client{}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -67,7 +42,7 @@ func (s *Star) PostToPonzu(ponzuURL string, ponzuKey string) error {
 	writer.Close()
 
 	// Create request
-	req, err := http.NewRequest("POST", "http://localhost:8080/api/content/external?type=Star", body)
+	req, err := http.NewRequest("POST", ponzuURL, body)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -77,7 +52,7 @@ func (s *Star) PostToPonzu(ponzuURL string, ponzuKey string) error {
 	req.Header.Add("Content-Type", "multipart/form-data; charset=utf-8; boundary="+boundary)
 
 	req.Header.Add("Content-Type", writer.FormDataContentType())
-	//req.Header.Add("Authorization", ponzuKey)
+	//TODO: Add header for client secret
 
 	parseFormErr := req.ParseForm()
 	if parseFormErr != nil {
@@ -111,18 +86,21 @@ func GetFromPonzu(ponzuURL string, ponzuKey string) (*StarCollection, error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//ponzuReq.Header.Add("Authorization", ponzuKey)
+	//TODO: Add header for client secret
 	resp, err := ponzuClient.Do(ponzuReq)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	fmt.Println(string(resp.Status))
+
 	// Read Response Body
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(respBody, &stars)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	fmt.Println(stars)
+	for _, s := range stars.Stars {
+		fmt.Println(s.FullName)
+	}
 	return &stars, nil
 }

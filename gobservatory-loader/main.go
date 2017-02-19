@@ -3,18 +3,32 @@ package main
 import (
 	"bufio"
 	"fmt"
+	flag "github.com/spf13/pflag"
 	"os"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/google/go-github/github"
+	"github.com/kkeuning/gobservatory/gobservatory-cms/content"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+var (
+	stargazer   = flag.String("stargazer", "", "GitHub account to read from for starred repositories.  Defaults to logged-in user.")
+	ponzuHost   = flag.String("ponzuHost", "localhost", "Hostname for Ponzu server.")
+	ponzuPort   = flag.String("ponzuPort", "8080", "Port for Ponzu server.")
+	ponzuSecret = flag.String("ponzuSecret", "", "Ponzu client secret.")
+)
+
 func main() {
+	flag.Parse()
+
+	fmt.Printf("Ponzu host: %s\n", *ponzuHost)
+	fmt.Printf("Ponzu port: %s\n", *ponzuPort)
+
 	// Get existing stars
-	stars, err := GetFromPonzu("http://localhost:8080/api/contents?type=Star&count=-1", "")
+	stars, err := GetFromPonzu(fmt.Sprintf("http://%s:%s/api/contents?type=Star&count=-1", *ponzuHost, *ponzuPort), *ponzuSecret)
 	if err != nil {
 		panic("Error getting stars from Ponzu")
 	}
@@ -50,6 +64,11 @@ func main() {
 	opt.PerPage = 30
 	opt.Page = 1
 
+	if *stargazer == "" {
+		stargazer = user.Login
+	}
+	fmt.Printf("Stargazer: %s\n", *stargazer)
+
 	for {
 		starred, _, err := client.Activity.ListStarred(*user.Login, opt)
 		if err != nil {
@@ -59,7 +78,7 @@ func main() {
 
 		// Format as Star and send if not exist
 		for _, star := range starred {
-			var s Star
+			var s content.Star
 			if star.Repository.Name != nil {
 				s.Name = *star.Repository.Name
 			}
@@ -135,8 +154,9 @@ func main() {
 			if stars.Contains(s) {
 				fmt.Println("Already exists: " + s.Name)
 			} else {
-				//TODO: Source Ponzu url and api key from environment
-				s.PostToPonzu("", "")
+				//TODO: Support https
+				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/external?type=Star", *ponzuHost, *ponzuPort), *ponzuSecret)
+
 			}
 
 			time.Sleep(50 * time.Millisecond)
