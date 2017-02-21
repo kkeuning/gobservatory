@@ -48,7 +48,7 @@ func (s *Star) AutoApprove(http.ResponseWriter, *http.Request) error {
 }
 
 func (s *Star) String() string {
-	return fmt.Sprintf("Item ID: %s", s.FullName)
+	return fmt.Sprintf("Repository Full Name: %s", s.FullName)
 }
 
 // MarshalEditor writes a buffer of html to edit a Star within the CMS
