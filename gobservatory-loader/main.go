@@ -70,7 +70,7 @@ func main() {
 	fmt.Printf("Stargazer: %s\n", *stargazer)
 
 	for {
-		starred, _, err := client.Activity.ListStarred(*user.Login, opt)
+		starred, _, err := client.Activity.ListStarred(*stargazer, opt)
 		if err != nil {
 			fmt.Printf("\nerror: %v\n", err)
 			return
