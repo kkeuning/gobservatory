@@ -150,16 +150,19 @@ func main() {
 					s.OwnerAvatarUrl = *star.Repository.Owner.AvatarURL
 				}
 			}
-			fmt.Println("Checking for " + s.Name)
-			if stars.Contains(s) {
+			fmt.Println("Checking for: " + s.Name)
+			id := stars.PonzuID(s)
+			if stars.PonzuID(s) != nil {
+				s = *stars.Merge(s)
 				fmt.Println("Already exists: " + s.Name)
+				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/update?type=Star&id=%d", *ponzuHost, *ponzuPort, *id), *ponzuSecret)
 			} else {
 				//TODO: Support https
 				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/external?type=Star", *ponzuHost, *ponzuPort), *ponzuSecret)
 
 			}
 
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 		if len(starred) < opt.PerPage {
 			break

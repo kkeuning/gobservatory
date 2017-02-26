@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/fatih/structs"
 	"github.com/kkeuning/gobservatory/gobservatory-cms/content"
+	"github.com/nilslice/jwt"
+
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -24,20 +28,54 @@ func (sc *StarCollection) Contains(s content.Star) bool {
 	return false
 }
 
+func (sc *StarCollection) PonzuID(s content.Star) *int {
+	for _, star := range sc.Stars {
+		if star.GithubId == s.GithubId {
+			return &star.ID
+		}
+	}
+	return nil
+}
+func (sc *StarCollection) Merge(s content.Star) *content.Star {
+	for _, star := range sc.Stars {
+		if star.GithubId == s.GithubId {
+			s.ID = star.ID
+			s.UUID = star.UUID
+			s.Slug = star.Slug
+			s.Tags = star.Tags
+			s.Comments = star.Comments
+			return &s
+		}
+	}
+	return nil
+}
+
 func PostToPonzu(s content.Star, ponzuURL string, ponzuKey string) error {
 	ponzuClient := &http.Client{}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	starStruct := structs.New(s)
 	for _, f := range starStruct.Fields() {
-		fmt.Printf("field name: %+v\n", f.Name())
-		fmt.Printf("json field name: %+v\n", f.Tag("json"))
-		fmt.Printf("is zero : %+v\n", f.IsZero())
+		if f.IsEmbedded() {
+			continue
+		}
+		if f.Name() == "Tags" {
+			for i, v := range s.Tags {
+				writer.WriteField(fmt.Sprintf("tags.%d", i), v)
+			}
+			continue
+		}
+		//fmt.Printf("field name: %+v\n", f.Name())
+		//fmt.Printf("json field name: %+v\n", f.Tag("json"))
+		//fmt.Printf("is zero : %+v\n", f.IsZero())
 		if f.IsZero() == false {
 			writer.WriteField(f.Tag("json"), fmt.Sprint(f.Value()))
-			fmt.Printf("value   : %+v\n", f.Value())
+			//fmt.Printf("value   : %+v\n", f.Value())
 		}
 	}
+	writer.WriteField("id", fmt.Sprint(s.ID))
+	writer.WriteField("uuid", fmt.Sprint(s.UUID))
+	writer.WriteField("slug", fmt.Sprint(s.Slug))
 	boundary := writer.Boundary()
 	writer.Close()
 
@@ -53,6 +91,18 @@ func PostToPonzu(s content.Star, ponzuURL string, ponzuKey string) error {
 
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 	//TODO: Add header for client secret
+	jwt.Secret([]byte(ponzuKey))
+	// add _token cookie for login persistence
+	week := time.Now().Add(time.Hour * 24 * 7)
+	claims := map[string]interface{}{
+		"exp":  week.Unix(),
+		"user": "kkeuning@gmail.com",
+	}
+	token, err := jwt.New(claims)
+	var cookie http.Cookie
+	cookie.Name = "_token"
+	cookie.Value = token
+	req.Header.Add("Cookie", cookie.String())
 
 	parseFormErr := req.ParseForm()
 	if parseFormErr != nil {
@@ -60,6 +110,7 @@ func PostToPonzu(s content.Star, ponzuURL string, ponzuKey string) error {
 		return err
 	}
 
+	fmt.Println(req)
 	// Fetch Request
 	resp, err := ponzuClient.Do(req)
 	if err != nil {
@@ -73,6 +124,7 @@ func PostToPonzu(s content.Star, ponzuURL string, ponzuKey string) error {
 		fmt.Println("Failure : ", err)
 		return err
 	}
+	defer resp.Body.Close()
 	fmt.Println(string(respBody))
 	fmt.Println(resp.Status)
 

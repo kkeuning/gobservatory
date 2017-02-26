@@ -40,6 +40,9 @@ type Star struct {
 func (s *Star) Accept(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
+func (s *Star) AcceptUpdate(res http.ResponseWriter, req *http.Request) error {
+	return nil
+}
 func (s *Star) Approve(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
