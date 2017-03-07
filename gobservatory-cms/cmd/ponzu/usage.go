@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"time"
 )
@@ -162,12 +161,28 @@ var usageVersion = `
 
 `
 
+var usageAdd = `
+add, a <import path>
+
+	Downloads addon from specified import path to $GOPATH/src and copys it to the
+	current project's ./addons directory. Must be called from within a 
+	Ponzu project directory.
+
+	Example:
+	$ ponzu add github.com/bosssauce/fbscheduler
+
+
+`
+
 func ponzu(isCLI bool) (map[string]interface{}, error) {
 	kv := make(map[string]interface{})
 
 	info := filepath.Join("cmd", "ponzu", "ponzu.json")
 	if isCLI {
-		gopath := os.Getenv("GOPATH")
+		gopath, err := getGOPATH()
+		if err != nil {
+			return nil, err
+		}
 		repo := filepath.Join(gopath, "src", "github.com", "ponzu-cms", "ponzu")
 		info = filepath.Join(repo, "cmd", "ponzu", "ponzu.json")
 	}

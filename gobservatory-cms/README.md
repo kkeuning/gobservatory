@@ -1,6 +1,8 @@
 ![My friend, "Gotoro"](ponzu-banner.png)
 
-# Ponzu
+# Ponzu 
+[![Sourcegraph Badge](https://sourcegraph.com/github.com/ponzu-cms/ponzu/-/badge.svg)](https://sourcegraph.com/github.com/ponzu-cms/ponzu?badge)
+
 Ponzu is a powerful and efficient open-source HTTP server framework and CMS. It 
 provides automatic, free, and secure HTTP/2 over TLS (certificates obtained via 
 [Let's Encrypt](https://letsencrypt.org)), a useful CMS and scaffolding to 
@@ -179,6 +181,20 @@ Example:
 ```bash
 $ ponzu upgrade
 ```
+
+---
+
+### add, a
+
+Downloads an addon to GOPATH/src and copys it to the Ponzu project's ./addons directory.
+Must be called from within a Ponzu project directory.
+
+Example:
+```bash
+$ ponzu add github.com/bosssauce/fbscheduler
+```
+
+Errors will be reported, but successful add commands return nothing.
 
 ---
 

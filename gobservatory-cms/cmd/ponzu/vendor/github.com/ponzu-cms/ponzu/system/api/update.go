@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,15 +11,17 @@ import (
 	"time"
 
 	"github.com/ponzu-cms/ponzu/system/admin/upload"
-	"github.com/ponzu-cms/ponzu/system/admin/user"
 	"github.com/ponzu-cms/ponzu/system/db"
 	"github.com/ponzu-cms/ponzu/system/item"
 )
+
+var ErrNoAuth = errors.New("Auth failed for update request.")
 
 // Updateable accepts or rejects update POST requests to endpoints such as:
 // /api/content/update?type=Review&id=1
 type Updateable interface {
 	// AcceptUpdate allows external content update submissions of a specific type
+	// user.IsValid(req) may be checked in AcceptUpdate to validate the request
 	AcceptUpdate(http.ResponseWriter, *http.Request) error
 }
 
@@ -37,7 +40,6 @@ func updateContentHandler(res http.ResponseWriter, req *http.Request) {
 
 	t := req.URL.Query().Get("type")
 	if t == "" {
-		log.Println("[Update] missing type.")
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -50,14 +52,8 @@ func updateContentHandler(res http.ResponseWriter, req *http.Request) {
 	}
 
 	id := req.URL.Query().Get("id")
-	if id == "" {
-		log.Println("[Update] attempt to submit update with missing id from:", req.RemoteAddr)
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if user.IsValid(req) == false {
-		log.Println("[Update] invalid user.")
+	if !db.IsValidID(id) {
+		log.Println("[Update] attempt to submit update with missing or invalid id from:", req.RemoteAddr)
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -66,7 +62,7 @@ func updateContentHandler(res http.ResponseWriter, req *http.Request) {
 
 	ext, ok := post.(Updateable)
 	if !ok {
-		log.Println("[Update] rejected non-replaceable type:", t, "from:", req.RemoteAddr)
+		log.Println("[Update] rejected non-updateable type:", t, "from:", req.RemoteAddr)
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -140,15 +136,18 @@ func updateContentHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = hook.BeforeAccept(res, req)
+	err = hook.BeforeAcceptUpdate(res, req)
 	if err != nil {
-		log.Println("[Update] error calling BeforeAccept:", err)
+		log.Println("[Update] error calling BeforeAcceptUpdate:", err)
 		return
 	}
 
 	err = ext.AcceptUpdate(res, req)
 	if err != nil {
-		log.Println("[Update] error calling Accept:", err)
+		log.Println("[Update] error calling AcceptUpdate:", err)
+		if err == ErrNoAuth {
+			res.WriteHeader(http.StatusUnauthorized)
+		}
 		return
 	}
 
@@ -178,9 +177,9 @@ func updateContentHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = hook.AfterAccept(res, req)
+	err = hook.AfterAcceptUpdate(res, req)
 	if err != nil {
-		log.Println("[Update] error calling AfterAccept:", err)
+		log.Println("[Update] error calling AfterAcceptUpdate:", err)
 		return
 	}
 

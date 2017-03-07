@@ -50,7 +50,13 @@ func (sc *StarCollection) Merge(s content.Star) *content.Star {
 	return nil
 }
 
-func PostToPonzu(s content.Star, ponzuURL string, ponzuKey string) error {
+type Post struct {
+	PonzuUrl    *string
+	PonzuSecret *string
+	PonzuUser   *string
+}
+
+func PostToPonzu(s content.Star, ponzuURL string, ponzuSecret string, ponzuUser string) error {
 	ponzuClient := &http.Client{}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -90,13 +96,13 @@ func PostToPonzu(s content.Star, ponzuURL string, ponzuKey string) error {
 	req.Header.Add("Content-Type", "multipart/form-data; charset=utf-8; boundary="+boundary)
 
 	req.Header.Add("Content-Type", writer.FormDataContentType())
-	//TODO: Add header for client secret
-	jwt.Secret([]byte(ponzuKey))
-	// add _token cookie for login persistence
+
+	// We generate a jwt for the request
+	jwt.Secret([]byte(ponzuSecret))
 	week := time.Now().Add(time.Hour * 24 * 7)
 	claims := map[string]interface{}{
 		"exp":  week.Unix(),
-		"user": "kkeuning@gmail.com",
+		"user": ponzuUser,
 	}
 	token, err := jwt.New(claims)
 	var cookie http.Cookie
@@ -138,7 +144,6 @@ func GetFromPonzu(ponzuURL string, ponzuKey string) (*StarCollection, error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	//TODO: Add header for client secret
 	resp, err := ponzuClient.Do(ponzuReq)
 	if err != nil {
 		fmt.Println("error:", err)

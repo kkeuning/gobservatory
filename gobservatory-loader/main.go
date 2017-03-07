@@ -19,6 +19,7 @@ var (
 	ponzuHost   = flag.String("ponzuHost", "localhost", "Hostname for Ponzu server.")
 	ponzuPort   = flag.String("ponzuPort", "8080", "Port for Ponzu server.")
 	ponzuSecret = flag.String("ponzuSecret", "", "Ponzu client secret.")
+	ponzuUser   = flag.String("ponzuUser", "", "Ponzu user/email.")
 )
 
 func main() {
@@ -153,12 +154,12 @@ func main() {
 			fmt.Println("Checking for: " + s.Name)
 			id := stars.PonzuID(s)
 			if stars.PonzuID(s) != nil {
-				s = *stars.Merge(s)
+				//s = *stars.Merge(s)
 				fmt.Println("Already exists: " + s.Name)
-				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/update?type=Star&id=%d", *ponzuHost, *ponzuPort, *id), *ponzuSecret)
+				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/update?type=Star&id=%d", *ponzuHost, *ponzuPort, *id), *ponzuSecret, *ponzuUser)
 			} else {
 				//TODO: Support https
-				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/external?type=Star", *ponzuHost, *ponzuPort), *ponzuSecret)
+				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/external?type=Star", *ponzuHost, *ponzuPort), *ponzuSecret, *ponzuUser)
 
 			}
 
