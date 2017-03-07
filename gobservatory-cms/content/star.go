@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/ponzu-cms/ponzu/management/editor"
+	"github.com/ponzu-cms/ponzu/system/admin/user"
+	"github.com/ponzu-cms/ponzu/system/api"
 	"github.com/ponzu-cms/ponzu/system/item"
 	"net/http"
 )
@@ -41,6 +43,9 @@ func (s *Star) Accept(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 func (s *Star) AcceptUpdate(res http.ResponseWriter, req *http.Request) error {
+	if user.IsValid(req) == false {
+		return api.ErrNoAuth
+	}
 	return nil
 }
 func (s *Star) Approve(res http.ResponseWriter, req *http.Request) error {
