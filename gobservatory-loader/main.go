@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	flag "github.com/spf13/pflag"
 	"os"
@@ -55,14 +56,15 @@ func main() {
 	}
 
 	client := github.NewClient(tp.Client())
-	user, _, err := client.Users.Get("")
+	ctx := context.Background()
+	user, _, err := client.Users.Get(ctx, "")
 
 	// Is this a two-factor auth error? If so, prompt for OTP and try again.
 	if _, ok := err.(*github.TwoFactorAuthError); err != nil && ok {
 		fmt.Print("\nGitHub OTP: ")
 		otp, _ := r.ReadString('\n')
 		tp.OTP = strings.TrimSpace(otp)
-		user, _, err = client.Users.Get("")
+		user, _, err = client.Users.Get(ctx, "")
 	}
 
 	fmt.Printf("\n%v\n", github.Stringify(user))
@@ -78,7 +80,7 @@ func main() {
 	fmt.Printf("Stargazer: %s\n", *stargazer)
 
 	for {
-		starred, _, err := client.Activity.ListStarred(*stargazer, opt)
+		starred, _, err := client.Activity.ListStarred(ctx, *stargazer, opt)
 		if err != nil {
 			fmt.Printf("\nerror: %v\n", err)
 			return
