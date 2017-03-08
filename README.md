@@ -39,7 +39,7 @@ Currently just a command line app to load any github starred repositories into P
 ```
 cd $GOPATH/src/github.com/kkeuning/gobservatory/gobservatory-loader
 go build
-./gobservatory-loader --ponzuSecret="[redacted]" --ponzuUser yourname@example.com
+./gobservatory-loader --ponzuSecret="[redacted]" --ponzuUser="yourname@example.com"
 
 ```
 In the future, gobservatory-loader will likely just prompt you to log into Ponzu.  For now, you need to provide a secret or token.
