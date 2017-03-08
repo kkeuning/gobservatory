@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fatih/structs"
+	"github.com/google/go-github/github"
 	"github.com/kkeuning/gobservatory/gobservatory-cms/content"
 	"github.com/nilslice/jwt"
 
@@ -50,13 +51,44 @@ func (sc *StarCollection) Merge(s content.Star) *content.Star {
 	return nil
 }
 
-type Post struct {
-	PonzuUrl    *string
-	PonzuSecret *string
-	PonzuUser   *string
+type Auth struct {
+	PonzuSecret string
+	PonzuUser   string
+	PonzuToken  string
+	AuthMethod  string
 }
 
-func PostToPonzu(s content.Star, ponzuURL string, ponzuSecret string, ponzuUser string) error {
+var AuthMethod = struct {
+	Secret string
+	Token  string
+	None   string
+}{
+	"Secret",
+	"Token",
+	"None",
+}
+
+func PonzuSecretAuth(secret string, user string) func(a *Auth) {
+	return func(a *Auth) {
+		a.PonzuSecret = secret
+		a.PonzuUser = user
+		a.AuthMethod = AuthMethod.Secret
+	}
+}
+
+func PonzuTokenAuth(token string) func(a *Auth) {
+	return func(a *Auth) {
+		a.PonzuToken = token
+		a.AuthMethod = AuthMethod.Token
+	}
+}
+func PonzuNoAuth() func(a *Auth) {
+	return func(a *Auth) {
+		a.AuthMethod = AuthMethod.None
+	}
+}
+
+func PostToPonzu(s content.Star, ponzuURL string, authOptions ...func(*Auth)) error {
 	ponzuClient := &http.Client{}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -71,12 +103,8 @@ func PostToPonzu(s content.Star, ponzuURL string, ponzuSecret string, ponzuUser 
 			}
 			continue
 		}
-		//fmt.Printf("field name: %+v\n", f.Name())
-		//fmt.Printf("json field name: %+v\n", f.Tag("json"))
-		//fmt.Printf("is zero : %+v\n", f.IsZero())
 		if f.IsZero() == false {
 			writer.WriteField(f.Tag("json"), fmt.Sprint(f.Value()))
-			//fmt.Printf("value   : %+v\n", f.Value())
 		}
 	}
 	writer.WriteField("id", fmt.Sprint(s.ID))
@@ -94,21 +122,35 @@ func PostToPonzu(s content.Star, ponzuURL string, ponzuSecret string, ponzuUser 
 
 	// Headers
 	req.Header.Add("Content-Type", "multipart/form-data; charset=utf-8; boundary="+boundary)
-
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 
-	// We generate a jwt for the request
-	jwt.Secret([]byte(ponzuSecret))
-	week := time.Now().Add(time.Hour * 24 * 7)
-	claims := map[string]interface{}{
-		"exp":  week.Unix(),
-		"user": ponzuUser,
+	auth := Auth{}
+	for _, option := range authOptions {
+		option(&auth)
 	}
-	token, err := jwt.New(claims)
-	var cookie http.Cookie
-	cookie.Name = "_token"
-	cookie.Value = token
-	req.Header.Add("Cookie", cookie.String())
+	switch auth.AuthMethod {
+	case AuthMethod.Secret:
+		// We generate a jwt for the request
+		jwt.Secret([]byte(auth.PonzuSecret))
+		week := time.Now().Add(time.Hour * 24 * 7)
+		claims := map[string]interface{}{
+			"exp":  week.Unix(),
+			"user": ponzuUser,
+		}
+		token, err := jwt.New(claims)
+		if err != nil {
+			return err
+		}
+		var cookie http.Cookie
+		cookie.Name = "_token"
+		cookie.Value = token
+		req.Header.Add("Cookie", cookie.String())
+	case AuthMethod.Token:
+		var cookie http.Cookie
+		cookie.Name = "_token"
+		cookie.Value = auth.PonzuToken
+		req.Header.Add("Cookie", cookie.String())
+	}
 
 	parseFormErr := req.ParseForm()
 	if parseFormErr != nil {
@@ -160,4 +202,84 @@ func GetFromPonzu(ponzuURL string, ponzuKey string) (*StarCollection, error) {
 		fmt.Println(s.FullName)
 	}
 	return &stars, nil
+}
+
+func GitHubStarToPonzuStar(gs *github.StarredRepository) content.Star {
+	var s content.Star
+	if gs == nil {
+		return s
+	}
+	g := *gs
+	if g.Repository.Name != nil {
+		s.Name = *g.Repository.Name
+	}
+	if g.Repository.FullName != nil {
+		s.FullName = *g.Repository.FullName
+	}
+	if g.Repository.ID != nil {
+		s.GithubId = *g.Repository.ID
+	}
+	if g.Repository.Language != nil {
+		s.Language = *g.Repository.Language
+	}
+	if g.Repository.HTMLURL != nil {
+		s.HtmlUrl = *g.Repository.HTMLURL
+	}
+	if g.Repository.Description != nil {
+		s.Description = *g.Repository.Description
+	}
+	if g.Repository.Size != nil {
+		s.Size = *g.Repository.Size
+	}
+	if g.Repository.Size != nil {
+		s.Size = *g.Repository.Size
+	}
+	if g.Repository.DefaultBranch != nil {
+		s.DefaultBranch = *g.Repository.DefaultBranch
+	}
+	if g.Repository.CreatedAt != nil {
+		s.CreatedAt = g.Repository.CreatedAt.String()
+	}
+	if g.StarredAt != nil {
+		s.StarredAt = g.StarredAt.String()
+	}
+	if g.Repository.UpdatedAt != nil {
+		s.UpdatedAt = g.Repository.UpdatedAt.String()
+	}
+	if g.Repository.PushedAt != nil {
+		s.PushedAt = g.Repository.PushedAt.String()
+	}
+	if g.Repository.StargazersCount != nil {
+		s.StargazersCount = *g.Repository.StargazersCount
+	}
+	if g.Repository.ForksCount != nil {
+		s.Forks = *g.Repository.ForksCount
+	}
+	if g.Repository.Fork != nil {
+		s.Fork = *g.Repository.Fork
+	}
+	if g.Repository.Private != nil {
+		s.Private = *g.Repository.Private
+	}
+	if g.Repository.Homepage != nil {
+		s.Homepage = *g.Repository.Homepage
+	}
+	if g.Repository.Owner != nil {
+		if g.Repository.Owner.Login != nil {
+			s.OwnerLogin = *g.Repository.Owner.Login
+		}
+		if g.Repository.Owner.ID != nil {
+			s.OwnerId = *g.Repository.Owner.ID
+		}
+		if g.Repository.Owner.Type != nil {
+			s.OwnerType = *g.Repository.Owner.Type
+		}
+		if g.Repository.Owner.URL != nil {
+			s.OwnerUrl = *g.Repository.Owner.URL
+		}
+		if g.Repository.Owner.AvatarURL != nil {
+			s.OwnerAvatarUrl = *g.Repository.Owner.AvatarURL
+		}
+	}
+	return s
 }
