@@ -76,7 +76,7 @@ func awesome(pc PonzuConnection, tagged bool) {
 					continue
 				}
 				if StarContainsTag(star, tag) {
-					fmt.Printf("* [%s](#%s) - %s\n", star.Name, star.HtmlUrl, star.Description)
+					fmt.Printf("* [%s](%s) - %s\n", star.Name, star.HtmlUrl, star.Description)
 				}
 			}
 		}

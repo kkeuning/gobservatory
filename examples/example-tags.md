@@ -263,38 +263,38 @@
 * [vim-godebug](https://github.com/jodosha/vim-godebug) - Go debugging for Vim 
 
 ## API
-* [goa](#https://github.com/goadesign/goa) - Design-based APIs and microservices in Go
-* [kong](#https://github.com/Mashape/kong) - :monkey: The API Gateway & Microservice Management Layer, built on NGINX
-* [rest-layer](#https://github.com/rs/rest-layer) - REST Layer, Go (golang) REST API framework
+* [goa](https://github.com/goadesign/goa) - Design-based APIs and microservices in Go
+* [kong](https://github.com/Mashape/kong) - :monkey: The API Gateway & Microservice Management Layer, built on NGINX
+* [rest-layer](https://github.com/rs/rest-layer) - REST Layer, Go (golang) REST API framework
 
 ## AWS
-* [awless](#https://github.com/wallix/awless) - A Mighty CLI for AWS
-* [graffiti-monkey](#https://github.com/Answers4AWS/graffiti-monkey) - Goes around tagging things
-* [kubernetes-the-hard-way-aws](#https://github.com/ivx/kubernetes-the-hard-way-aws) - Kubernetes the hard way on aws
-* [minio-go](#https://github.com/minio/minio-go) - Minio Go Library for Amazon S3 compatible cloud storage
-* [og-aws](#https://github.com/open-guides/og-aws) - 📙 Amazon Web Services — a practical guide
+* [awless](https://github.com/wallix/awless) - A Mighty CLI for AWS
+* [graffiti-monkey](https://github.com/Answers4AWS/graffiti-monkey) - Goes around tagging things
+* [kubernetes-the-hard-way-aws](https://github.com/ivx/kubernetes-the-hard-way-aws) - Kubernetes the hard way on aws
+* [minio-go](https://github.com/minio/minio-go) - Minio Go Library for Amazon S3 compatible cloud storage
+* [og-aws](https://github.com/open-guides/og-aws) - 📙 Amazon Web Services — a practical guide
 
 ## Containers
-* [dvm](#https://github.com/howtowhale/dvm) - Docker Version Manager
-* [kops](#https://github.com/kubernetes/kops) - Kubernetes Operations (kops) - Production Grade K8s Installation, Upgrades, and Management
-* [kube-solo-osx](#https://github.com/TheNewNormal/kube-solo-osx) - Local development Kubernetes Solo Cluster for macOS made very simple
-* [kubernetes-the-hard-way](#https://github.com/kelseyhightower/kubernetes-the-hard-way) - Bootstrap Kubernetes the hard way on Google Cloud Platform or Amazon EC2. No scripts.
-* [kubernetes-the-hard-way-aws](#https://github.com/ivx/kubernetes-the-hard-way-aws) - Kubernetes the hard way on aws
-* [prometheus](#https://github.com/prometheus/prometheus) - The Prometheus monitoring system and time series database.
+* [dvm](https://github.com/howtowhale/dvm) - Docker Version Manager
+* [kops](https://github.com/kubernetes/kops) - Kubernetes Operations (kops) - Production Grade K8s Installation, Upgrades, and Management
+* [kube-solo-osx](https://github.com/TheNewNormal/kube-solo-osx) - Local development Kubernetes Solo Cluster for macOS made very simple
+* [kubernetes-the-hard-way](https://github.com/kelseyhightower/kubernetes-the-hard-way) - Bootstrap Kubernetes the hard way on Google Cloud Platform or Amazon EC2. No scripts.
+* [kubernetes-the-hard-way-aws](https://github.com/ivx/kubernetes-the-hard-way-aws) - Kubernetes the hard way on aws
+* [prometheus](https://github.com/prometheus/prometheus) - The Prometheus monitoring system and time series database.
 
 ## Data Science
-* [gofordatascience](#https://github.com/dwhitena/gofordatascience) - Data science with Go on Go using tools written in Go
-* [gosl](#https://github.com/cpmech/gosl) - Go scientific library
+* [gofordatascience](https://github.com/dwhitena/gofordatascience) - Data science with Go on Go using tools written in Go
+* [gosl](https://github.com/cpmech/gosl) - Go scientific library
 
 ## Database
-* [db](#https://github.com/upper/db) - A productive data access layer for Go.
-* [migrate](#https://github.com/mattes/migrate) - Database migrations. CLI and Golang library.
-* [sqlboiler](#https://github.com/vattle/sqlboiler) - SQLBoiler is a tool to generate a Go ORM tailored to your database schema.
-* [usql](#https://github.com/knq/usql) - usql is a universal command-line interface for SQL databases
-* [xo](#https://github.com/knq/xo) - Command line tool to generate idiomatic Go code for SQL databases supporting PostgreSQL, MySQL, SQLite, Oracle, and Microsoft SQL Server
+* [db](https://github.com/upper/db) - A productive data access layer for Go.
+* [migrate](https://github.com/mattes/migrate) - Database migrations. CLI and Golang library.
+* [sqlboiler](https://github.com/vattle/sqlboiler) - SQLBoiler is a tool to generate a Go ORM tailored to your database schema.
+* [usql](https://github.com/knq/usql) - usql is a universal command-line interface for SQL databases
+* [xo](https://github.com/knq/xo) - Command line tool to generate idiomatic Go code for SQL databases supporting PostgreSQL, MySQL, SQLite, Oracle, and Microsoft SQL Server
 
 ## S3
-* [minio-go](#https://github.com/minio/minio-go) - Minio Go Library for Amazon S3 compatible cloud storage
+* [minio-go](https://github.com/minio/minio-go) - Minio Go Library for Amazon S3 compatible cloud storage
 
 ## Storage
-* [minio-go](#https://github.com/minio/minio-go) - Minio Go Library for Amazon S3 compatible cloud storage
+* [minio-go](https://github.com/minio/minio-go) - Minio Go Library for Amazon S3 compatible cloud storage
