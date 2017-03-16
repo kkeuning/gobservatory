@@ -16,10 +16,18 @@ import (
 	"net/http"
 )
 
+// StarCollection is a collection of Ponzu Stars
 type StarCollection struct {
 	Stars []content.Star `json:"data"`
 }
 
+// StarCollection implements Sortable
+
+func (sc *StarCollection) Len() int           { return len(sc.Stars) }
+func (sc *StarCollection) Swap(i, j int)      { sc.Stars[i], sc.Stars[j] = sc.Stars[j], sc.Stars[i] }
+func (sc *StarCollection) Less(i, j int) bool { return sc.Stars[i].Name < sc.Stars[j].Name }
+
+// Contains returns true if a Star with given Github ID exists in the Ponzu StarCollection
 func (sc *StarCollection) Contains(s content.Star) bool {
 	for _, star := range sc.Stars {
 		if star.GithubId == s.GithubId {
@@ -29,6 +37,8 @@ func (sc *StarCollection) Contains(s content.Star) bool {
 	return false
 }
 
+// PonzuID returns the Ponzu ID of a star in the collection matching a provided star based
+// on Github ID
 func (sc *StarCollection) PonzuID(s content.Star) *int {
 	for _, star := range sc.Stars {
 		if star.GithubId == s.GithubId {
@@ -37,6 +47,8 @@ func (sc *StarCollection) PonzuID(s content.Star) *int {
 	}
 	return nil
 }
+
+// Merge will merge data from Ponzu into the Star
 func (sc *StarCollection) Merge(s content.Star) *content.Star {
 	for _, star := range sc.Stars {
 		if star.GithubId == s.GithubId {
@@ -51,44 +63,8 @@ func (sc *StarCollection) Merge(s content.Star) *content.Star {
 	return nil
 }
 
-type Auth struct {
-	PonzuSecret string
-	PonzuUser   string
-	PonzuToken  string
-	AuthMethod  string
-}
-
-var AuthMethod = struct {
-	Secret string
-	Token  string
-	None   string
-}{
-	"Secret",
-	"Token",
-	"None",
-}
-
-func PonzuSecretAuth(secret string, user string) func(a *Auth) {
-	return func(a *Auth) {
-		a.PonzuSecret = secret
-		a.PonzuUser = user
-		a.AuthMethod = AuthMethod.Secret
-	}
-}
-
-func PonzuTokenAuth(token string) func(a *Auth) {
-	return func(a *Auth) {
-		a.PonzuToken = token
-		a.AuthMethod = AuthMethod.Token
-	}
-}
-func PonzuNoAuth() func(a *Auth) {
-	return func(a *Auth) {
-		a.AuthMethod = AuthMethod.None
-	}
-}
-
-func PostToPonzu(s content.Star, ponzuURL string, authOptions ...func(*Auth)) error {
+// PostToPonzu will load the collection to Ponzu
+func PostToPonzu(s content.Star, url string, pc PonzuConnection) error {
 	ponzuClient := &http.Client{}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -114,7 +90,7 @@ func PostToPonzu(s content.Star, ponzuURL string, authOptions ...func(*Auth)) er
 	writer.Close()
 
 	// Create request
-	req, err := http.NewRequest("POST", ponzuURL, body)
+	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -125,9 +101,8 @@ func PostToPonzu(s content.Star, ponzuURL string, authOptions ...func(*Auth)) er
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 
 	auth := Auth{}
-	for _, option := range authOptions {
-		option(&auth)
-	}
+	pc.Auth(&auth)
+
 	switch auth.AuthMethod {
 	case AuthMethod.Secret:
 		// We generate a jwt for the request
@@ -135,7 +110,7 @@ func PostToPonzu(s content.Star, ponzuURL string, authOptions ...func(*Auth)) er
 		week := time.Now().Add(time.Hour * 24 * 7)
 		claims := map[string]interface{}{
 			"exp":  week.Unix(),
-			"user": ponzuUser,
+			"user": auth.PonzuUser,
 		}
 		token, err := jwt.New(claims)
 		if err != nil {
@@ -179,10 +154,11 @@ func PostToPonzu(s content.Star, ponzuURL string, authOptions ...func(*Auth)) er
 	return nil
 }
 
-func GetFromPonzu(ponzuURL string, ponzuKey string) (*StarCollection, error) {
+// GetFromPonzu will get Stars from Ponzu CMS
+func GetFromPonzu(url string) (*StarCollection, error) {
 	var stars StarCollection
 	ponzuClient := &http.Client{}
-	ponzuReq, err := http.NewRequest("GET", ponzuURL, nil)
+	ponzuReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
@@ -190,20 +166,19 @@ func GetFromPonzu(ponzuURL string, ponzuKey string) (*StarCollection, error) {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	fmt.Println(string(resp.Status))
-
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf(resp.Status)
+	}
 	// Read Response Body
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(respBody, &stars)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	for _, s := range stars.Stars {
-		fmt.Println(s.FullName)
-	}
 	return &stars, nil
 }
 
+// GitHubStarToPonzuStar will copy StarredRepitory details into a ponzu Star struct
 func GitHubStarToPonzuStar(gs *github.StarredRepository) content.Star {
 	var s content.Star
 	if gs == nil {

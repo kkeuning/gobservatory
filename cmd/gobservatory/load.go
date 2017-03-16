@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	flag "github.com/spf13/pflag"
 	"os"
 	"strings"
 	"syscall"
@@ -14,31 +13,15 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var (
-	stargazer   = flag.String("stargazer", "", "GitHub account to read from for starred repositories.  Defaults to logged-in user.")
-	ponzuHost   = flag.String("ponzuHost", "localhost", "Hostname for Ponzu server.")
-	ponzuPort   = flag.String("ponzuPort", "8080", "Port for Ponzu server.")
-	ponzuSecret = flag.String("ponzuSecret", "", "Ponzu client secret.")
-	ponzuUser   = flag.String("ponzuUser", "", "Ponzu user/email.")
-	ponzuToken  = flag.String("ponzuToken", "", "Ponzu client token.")
-)
-
-func main() {
-	flag.Parse()
-	authOptions := PonzuNoAuth() // default
-	if ponzuToken != nil && *ponzuToken != "" {
-		authOptions = PonzuTokenAuth(*ponzuToken)
-	}
-	if ponzuSecret != nil && ponzuUser != nil && *ponzuSecret != "" && *ponzuUser != "" {
-		authOptions = PonzuSecretAuth(*ponzuSecret, *ponzuUser)
-	}
-
-	fmt.Printf("Ponzu host: %s\n", *ponzuHost)
-	fmt.Printf("Ponzu port: %s\n", *ponzuPort)
+func load(pc PonzuConnection, gazer string) {
+	fmt.Printf("Ponzu scheme: %s\n", pc.Scheme)
+	fmt.Printf("Ponzu host: %s\n", pc.Host)
+	fmt.Printf("Ponzu port: %s\n", pc.Port)
 
 	// Get existing stars
-	stars, err := GetFromPonzu(fmt.Sprintf("http://%s:%s/api/contents?type=Star&count=-1", *ponzuHost, *ponzuPort), *ponzuSecret)
+	stars, err := GetFromPonzu(fmt.Sprintf("%s://%s:%s/api/contents?type=Star&count=-1", pc.Scheme, pc.Host, pc.Port))
 	if err != nil {
+		fmt.Println(err.Error())
 		panic("Error getting stars from Ponzu")
 	}
 	// Now get starred from Github
@@ -74,13 +57,13 @@ func main() {
 	opt.PerPage = 30
 	opt.Page = 1
 
-	if *stargazer == "" {
-		stargazer = user.Login
+	if gazer == "" {
+		gazer = *user.Login
 	}
-	fmt.Printf("Stargazer: %s\n", *stargazer)
+	fmt.Printf("Stargazer: %s\n", gazer)
 
 	for {
-		starred, _, err := client.Activity.ListStarred(ctx, *stargazer, opt)
+		starred, _, err := client.Activity.ListStarred(ctx, gazer, opt)
 		if err != nil {
 			fmt.Printf("\nerror: %v\n", err)
 			return
@@ -94,11 +77,9 @@ func main() {
 				// Merge to preserve existing comments, tags
 				s = *stars.Merge(s)
 				fmt.Println("Already exists, updating:", s.Name)
-				//TODO: Support https
-				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/update?type=Star&id=%d", *ponzuHost, *ponzuPort, *id), authOptions)
+				PostToPonzu(s, fmt.Sprintf("%s://%s:%s/api/content/update?type=Star&id=%d", pc.Scheme, pc.Host, pc.Port, *id), pc)
 			} else {
-				//TODO: Support https
-				PostToPonzu(s, fmt.Sprintf("http://%s:%s/api/content/external?type=Star", *ponzuHost, *ponzuPort))
+				PostToPonzu(s, fmt.Sprintf("%s://%s:%s/api/content/external?type=Star", pc.Scheme, pc.Host, pc.Port), pc)
 			}
 			time.Sleep(100 * time.Millisecond)
 		}
@@ -107,4 +88,5 @@ func main() {
 		}
 		opt.Page++
 	}
+	return
 }

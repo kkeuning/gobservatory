@@ -1,3 +1,5 @@
 *.db
 gobservatory-cms/ponzu-server
 gobservatory-loader/gobservatory-loader
+*.vscode
+*.swp
