@@ -26,7 +26,7 @@ ponzu run
 
 
 ## cmd/gobservatory
-Currently just a command line app to load any github starred repositories into Ponzu for an individual github account.  By default based based on the logged in github account (cli will prompt for login), but optionally you can specify the "stargazer" of interest.  It should be possible to aggregating starred repository lists for multiple users by running the cli against each stargazer's name and loading to a common Ponzu.  The cli supports both initial creation and update of content in Ponzu.
+Currently just a command line app to load any github starred repositories into Ponzu for an individual github account.  By default based based on the logged in github account (cli will prompt for login), but optionally you can specify the "stargazer" of interest.  It should be possible to aggregate starred repository lists for multiple users by running the cli against each stargazer's name and loading to a common Ponzu.  The cli supports both initial creation and update of content in Ponzu.
 
 ```
 cd $GOPATH/src/github.com/kkeuning/gobservatory/cmd/gobservatory
