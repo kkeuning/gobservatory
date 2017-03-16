@@ -258,3 +258,13 @@ func GitHubStarToPonzuStar(gs *github.StarredRepository) content.Star {
 	}
 	return s
 }
+
+// StarContainsTag returns true if a Star with given Github ID exists in the Ponzu StarCollection
+func StarContainsTag(s content.Star, tag string) bool {
+	for _, t := range s.Tags {
+		if t == tag {
+			return true
+		}
+	}
+	return false
+}

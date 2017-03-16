@@ -14,7 +14,7 @@ func awesome(pc PonzuConnection, tagged bool) {
 	}
 	sort.Sort(stars)
 	var langs = make(map[string]interface{})
-	var tags = make(map[string]interface{})
+	var tg = make(map[string]interface{})
 	// Build up the tags
 	for i, star := range stars.Stars {
 		if star.Language == "" {
@@ -28,27 +28,24 @@ func awesome(pc PonzuConnection, tagged bool) {
 			continue
 		}
 		for _, t := range star.Tags {
-			if _, ok := tags[t]; !ok {
-				tags[t] = nil // add tag into map
+			if _, ok := tg[t]; !ok {
+				tg[t] = nil // add tag into map
 			}
 		}
 	}
+
 	languages := []string{}
 	for k := range langs {
 		languages = append(languages, k)
 	}
 	sort.Strings(languages)
-	// Build up the languages
-	for _, star := range stars.Stars {
-		if len(star.Tags) == 0 {
-			continue
-		}
-		for _, t := range star.Tags {
-			if _, ok := tags[t]; !ok {
-				tags[t] = nil // add tag into map
-			}
-		}
+
+	tags := []string{}
+	for k := range tg {
+		tags = append(tags, k)
 	}
+	sort.Strings(tags)
+
 	// Print contents
 	fmt.Printf("\n## Contents\n")
 	// languages
@@ -57,7 +54,7 @@ func awesome(pc PonzuConnection, tagged bool) {
 	}
 	// tags
 	if tagged {
-		for tag := range tags {
+		for _, tag := range tags {
 			fmt.Printf("- [%s](#%s)\n", tag, strings.Replace(strings.ToLower(tag), " ", "-", -1))
 		}
 	}
@@ -72,13 +69,13 @@ func awesome(pc PonzuConnection, tagged bool) {
 	}
 	if tagged {
 		// Print by tag
-		for tag := range tags {
+		for _, tag := range tags {
 			fmt.Printf("\n## %s\n", tag)
 			for _, star := range stars.Stars {
 				if len(star.Tags) == 0 {
 					continue
 				}
-				if _, ok := tags[tag]; ok {
+				if StarContainsTag(star, tag) {
 					fmt.Printf("* [%s](#%s) - %s\n", star.Name, star.HtmlUrl, star.Description)
 				}
 			}
