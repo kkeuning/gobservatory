@@ -2,20 +2,12 @@
 
 I have too many starred repositories, need a way to organize them with tags and comments.  
 
-**Potential Solution:**
+**Solution:**
 
 1. Sync the starred repository information into Ponzu using the GitHub API.
-2. Add labels and more detailed comments.  
+2. Add tags for categorization and additional comments.  
 3. Extract to an [awesome list](https://awesome.re) formatted markdown file.
-4. Or consume the enriched content from Ponzu into a web page.
-
-**Other goals:**
-
-This is deliberately an experiment with using Ponzu and Buffalo, along with a few other intentional dependencies of projects I have an interest in.  After the initial POC this list may change:
-* [Ponzu](https://github.com/ponzu-cms/ponzu) CMS
-* [go-github](https://github.com/google/go-github) SDK for GitHub API
-* [structs](https://github.com/fatih/structs) package of utilities for working with go structs
-* [buffalo](https://github.com/gobuffalo/buffalo) Web framework for fronting the CMS content with a web app
+4. Or consume the enriched content from Ponzu into a web client.
 
 **Important: This project requires Go 1.8 or higher.**
 
@@ -33,21 +25,21 @@ ponzu run
 ```
 
 
-## gobservatory-loader
-Currently just a command line app to load any github starred repositories into Ponzu for an individual github account.  Initially based on the logged in github account (cli will prompt for login).  I have some ideas about aggregating starred repository lists for multiple users that are not yet implemented.  Supports both initial creation and update of content in Ponzu.
+## cmd/gobservatory
+Currently just a command line app to load any github starred repositories into Ponzu for an individual github account.  By default based based on the logged in github account (cli will prompt for login), but optionally you can specify the "stargazer" of interest.  It should be possible to aggregating starred repository lists for multiple users by running the cli against each stargazer's name and loading to a common Ponzu.  The cli supports both initial creation and update of content in Ponzu.
 
 ```
-cd $GOPATH/src/github.com/kkeuning/gobservatory/gobservatory-loader
+cd $GOPATH/src/github.com/kkeuning/gobservatory/cmd/gobservatory
 go build
-./gobservatory-loader --ponzuSecret="[redacted]" --ponzuUser="yourname@example.com"
+./gobservatory --ponzuSecret="[redacted]" --ponzuUser="yourname@example.com"
 
 ```
-In the future, gobservatory-loader will likely just prompt you to log into Ponzu.  For now, you need to provide a secret or token.
+In the future, gobservatory will likely just prompt you to log into Ponzu.  For now, you need to provide a secret or token.
 
-Replace "[redacted]" in the above with the "Client Secret" from Ponzu (e.g. http://localhost:8080/admin/configure from a logged in session).  This method works if you are running gobservatory-loader and gobservatory-cms on the same server.  If not, you can alternately pass the entire token like this:
+Replace "[redacted]" in the above with the "Client Secret" from Ponzu (e.g. http://localhost:8080/admin/configure from a logged in session).  This method works if you are running the gobservatory cli and gobservatory-cms on the same server.  If not, you can alternately pass the entire token like this:
 
 ```
-./gobservatory-loader --ponzuToken="[redacted]"
+./gobservatory --ponzuToken="[redacted]"
 ```
 To obtain the token, you need to log in to Ponzu:
 ```
@@ -60,8 +52,15 @@ You will find the token in curl output as the value after "Set-Cookie: _token="
 
 Do not include the trailing semi-colon.  
 
-## gobservatory-awesome
-Not yet implemented.   Will be similar to gobservatory-loader, a command line app to extract starred repositories from the cms and organize them into a markdown file based on tags and language.
+## Building your "awesome" markdown file
+```
+./gobservatory markdown
+```
+The gobservatory cli will to extract starred repositories from the cms and organize them into a markdown file based language.  To also organize by tag, use the "useTags" flag:
+```
+./gobservatory markdown --ponzuHost="localhost" --ponzuPort="8080" --useTags
+```
 
-## gobservatory-buffalo
-Not yet implemented.  Initially will take the gobservatory-awesome output and render it using buffalo.  Later I'd like to include an example of pulling the CMS json content live into a web app and may do this with Buffalo and/or React.
+# Roadmap
+- Comments.  The gobservatory cli does not yet include your personal comments in the markdown.  This option is likely in the future.
+- Language overrides.  Currently the loader will trust github for identifying the primary language of a project.  Github is occasionally incorrect.  Today you can correct that information in Ponzu, but the next sync with `gobservatory load` will overwrite your changes.  A likely future enhancement will address this.   
