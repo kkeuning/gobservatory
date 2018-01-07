@@ -70,7 +70,7 @@ Use the Ponzu interface (e.g. http://localhost:8080/admin/contents?type=Star) to
 GitHub will continue to be your authoritative data source, and updates or additions to your starred repositories in GitHub will be pulled into gobservatory on your next update, potentially overwriting your changes with some exceptions:
 1.  GitHub doesn't support tags or comments for starred repositories, so your tags and comments won't be overwritten when you update from GitHub.
 2.  If you "Unstar" a repository in GitHub, you will need to delete it manually from gobservatory at this point in time.  
-3.  If you correct/alter the programming language associated with a project, currently that change will be overwritten by `gobservatory load` on the next update unless its been fixed in GitHub.
+3.  If you want to correct/alter the primary programming language associated with a project, use the Corrected Language field instead of Language.  Corrected Language overrides the language identified by GitHub as primary for the project.  If GitHub was wrong you can make corrections that will not be overwritten.
 
 ## Building your "awesome" markdown file:
 ```
@@ -85,4 +85,3 @@ The gobservatory cli will to extract starred repositories from the cms and organ
 
 # Roadmap
 - Comments.  The gobservatory cli does not yet include your personal comments in the markdown.  This option is likely in the future.  Current behavior is to use the project description from GitHub as the comment.  Future behavior will use flags to opt for either custom comments, project description comments, or merged comments (custom comment overrides description only if its populated).
-- Language overrides.  Currently the loader will trust GitHub for identifying the primary language of a project.  GitHub is occasionally incorrect.  Today you can correct that information in Ponzu, but the next sync with `gobservatory load` will overwrite your changes.  A likely future enhancement will address this.   
