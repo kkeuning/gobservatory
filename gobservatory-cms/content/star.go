@@ -13,30 +13,31 @@ import (
 type Star struct {
 	item.Item
 
-	Name            string   `json:"name"`
-	FullName        string   `json:"full_name"`
-	GithubId        int      `json:"github_id"`
-	HtmlUrl         string   `json:"html_url"`
-	Description     string   `json:"description"`
-	Private         bool     `json:"private"`
-	Fork            bool     `json:"fork"`
-	Language        string   `json:"language"`
-	OwnerLogin      string   `json:"owner_login"`
-	OwnerAvatarUrl  string   `json:"owner_avatar_url"`
-	OwnerUrl        string   `json:"owner_url"`
-	OwnerId         int      `json:"owner_id"`
-	OwnerType       string   `json:"owner_type"`
-	Homepage        string   `json:"homepage"`
-	Forks           int      `json:"forks"`
-	Size            int      `json:"size"`
-	StargazersCount int      `json:"stargazers_count"`
-	DefaultBranch   string   `json:"default_branch"`
-	StarredAt       string   `json:"starred_at"`
-	CreatedAt       string   `json:"created_at"`
-	UpdatedAt       string   `json:"updated_at"`
-	PushedAt        string   `json:"pushed_at"`
-	Comments        string   `json:"comments"`
-	Tags            []string `json:"tags"`
+	Name              string   `json:"name"`
+	FullName          string   `json:"full_name"`
+	GithubId          int      `json:"github_id"`
+	HtmlUrl           string   `json:"html_url"`
+	Description       string   `json:"description"`
+	Private           bool     `json:"private"`
+	Fork              bool     `json:"fork"`
+	Language          string   `json:"language"`
+	CorrectedLanguage string   `json:"corrected_language"`
+	OwnerLogin        string   `json:"owner_login"`
+	OwnerAvatarUrl    string   `json:"owner_avatar_url"`
+	OwnerUrl          string   `json:"owner_url"`
+	OwnerId           int      `json:"owner_id"`
+	OwnerType         string   `json:"owner_type"`
+	Homepage          string   `json:"homepage"`
+	Forks             int      `json:"forks"`
+	Size              int      `json:"size"`
+	StargazersCount   int      `json:"stargazers_count"`
+	DefaultBranch     string   `json:"default_branch"`
+	StarredAt         string   `json:"starred_at"`
+	CreatedAt         string   `json:"created_at"`
+	UpdatedAt         string   `json:"updated_at"`
+	PushedAt          string   `json:"pushed_at"`
+	Comments          string   `json:"comments"`
+	Tags              []string `json:"tags"`
 }
 
 func (s *Star) Accept(res http.ResponseWriter, req *http.Request) error {
@@ -134,6 +135,13 @@ func (s *Star) MarshalEditor() ([]byte, error) {
 				"label":       "Language",
 				"type":        "text",
 				"placeholder": "Enter the Language here",
+			}),
+		},
+		editor.Field{
+			View: editor.Input("CorrectedLanguage", s, map[string]string{
+				"label":       "Corrected Language",
+				"type":        "text",
+				"placeholder": "If GitHub is wrong, enter the actual language here",
 			}),
 		},
 		editor.Field{

@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const Unknown = "Unknown"
+
 func awesome(pc PonzuConnection, tagged bool) {
 	// Get existing stars
 	stars, err := GetFromPonzu(fmt.Sprintf("%s://%s:%s/api/contents?type=Star&count=-1", pc.Scheme, pc.Host, pc.Port))
@@ -15,14 +17,19 @@ func awesome(pc PonzuConnection, tagged bool) {
 	sort.Sort(stars)
 	var langs = make(map[string]interface{})
 	var tg = make(map[string]interface{})
-	// Build up the tags
+	// Build up the tags and languages
 	for i, star := range stars.Stars {
-		if star.Language == "" {
-			stars.Stars[i].Language = "Unknown"
-			star.Language = stars.Stars[i].Language
+		lang := ""
+		if star.CorrectedLanguage == "" {
+			if star.Language == "" {
+				stars.Stars[i].Language = Unknown
+				star.Language = stars.Stars[i].Language
+			} else {
+				lang = star.Language
+			}
 		}
-		if _, ok := langs[star.Language]; !ok {
-			langs[star.Language] = nil
+		if _, ok := langs[lang]; !ok {
+			langs[lang] = nil // add language into map
 		}
 		if len(star.Tags) == 0 {
 			continue
@@ -34,6 +41,7 @@ func awesome(pc PonzuConnection, tagged bool) {
 		}
 	}
 
+	// Convert the maps to slices of strings for sorting
 	languages := []string{}
 	for k := range langs {
 		languages = append(languages, k)
@@ -62,7 +70,16 @@ func awesome(pc PonzuConnection, tagged bool) {
 	for _, lang := range languages {
 		fmt.Printf("\n## %s\n", lang)
 		for _, star := range stars.Stars {
-			if star.Language == lang {
+			starLang := star.CorrectedLanguage
+			if starLang == "" {
+				if star.Language == "" {
+					starLang = Unknown
+				} else {
+					starLang = star.Language
+				}
+			}
+
+			if starLang == lang {
 				fmt.Printf("* [%s](%s) - %s\n", star.Name, star.HtmlUrl, star.Description)
 			}
 		}
