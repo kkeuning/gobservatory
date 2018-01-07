@@ -2,11 +2,19 @@ package main
 
 import (
 	"fmt"
+	"github.com/kkeuning/gobservatory/gobservatory-cms/content"
 	"sort"
 	"strings"
 )
 
 const Unknown = "Unknown"
+
+func comment(s content.Star) string {
+	if s.Comments == "" {
+		return s.Description
+	}
+	return s.Comments
+}
 
 func awesome(pc PonzuConnection, tagged bool) {
 	// Get existing stars
@@ -80,7 +88,7 @@ func awesome(pc PonzuConnection, tagged bool) {
 			}
 
 			if starLang == lang {
-				fmt.Printf("* [%s](%s) - %s\n", star.Name, star.HtmlUrl, star.Description)
+				fmt.Printf("* [%s](%s) - %s\n", star.Name, star.HtmlUrl, comment(star))
 			}
 		}
 	}
@@ -93,7 +101,7 @@ func awesome(pc PonzuConnection, tagged bool) {
 					continue
 				}
 				if StarContainsTag(star, tag) {
-					fmt.Printf("* [%s](%s) - %s\n", star.Name, star.HtmlUrl, star.Description)
+					fmt.Printf("* [%s](%s) - %s\n", star.Name, star.HtmlUrl, comment(star))
 				}
 			}
 		}

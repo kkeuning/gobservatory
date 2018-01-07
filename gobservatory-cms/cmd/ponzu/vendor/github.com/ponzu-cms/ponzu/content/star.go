@@ -37,6 +37,7 @@ type Star struct {
 	UpdatedAt         string   `json:"updated_at"`
 	PushedAt          string   `json:"pushed_at"`
 	Comments          string   `json:"comments"`
+	Notes             string   `json:"notes"`
 	Tags              []string `json:"tags"`
 }
 
@@ -110,10 +111,17 @@ func (s *Star) MarshalEditor() ([]byte, error) {
 			}),
 		},
 		editor.Field{
-			View: editor.Richtext("Comments", s, map[string]string{
+			View: editor.Input("Comments", s, map[string]string{
 				"label":       "Comments",
 				"type":        "text",
 				"placeholder": "Comments",
+			}),
+		},
+		editor.Field{
+			View: editor.Richtext("Notes", s, map[string]string{
+				"label":       "Notes",
+				"type":        "text",
+				"placeholder": "Additional Notes",
 			}),
 		},
 		editor.Field{
