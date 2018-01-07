@@ -71,6 +71,7 @@ GitHub will continue to be your authoritative data source, and updates or additi
 1.  GitHub doesn't support tags or comments for starred repositories, so your tags and comments won't be overwritten when you update from GitHub.
 2.  If you "Unstar" a repository in GitHub, you will need to delete it manually from gobservatory at this point in time.  
 3.  If you want to correct/alter the primary programming language associated with a project, use the Corrected Language field instead of Language.  Corrected Language overrides the language identified by GitHub as primary for the project.  If GitHub was wrong you can make corrections that will not be overwritten.
+4.  Current behavior for comments is to use the Description from GitHub as the default comment for a repository.  Custom comments override description only if the Comments field is populated.
 
 ## Building your "awesome" markdown file:
 ```
@@ -82,6 +83,3 @@ The gobservatory cli will to extract starred repositories from the cms and organ
 ```
 ./gobservatory markdown --ponzuHost="localhost" --ponzuPort="8080" --useTags
 ```
-
-# Roadmap
-- Comments.  The gobservatory cli does not yet include your personal comments in the markdown.  This option is likely in the future.  Current behavior is to use the project description from GitHub as the comment.  Future behavior will use flags to opt for either custom comments, project description comments, or merged comments (custom comment overrides description only if its populated).
