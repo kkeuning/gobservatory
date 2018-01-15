@@ -43,7 +43,7 @@ func main() {
 	command := os.Args[1]
 	switch command {
 	case "load":
-		load(ponzuConnection, *stargazer)
+		load(&ponzuConnection, *stargazer)
 	case "markdown":
 		// Get existing stars
 		awesome(ponzuConnection, *useTags)

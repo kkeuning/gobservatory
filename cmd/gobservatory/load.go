@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func load(pc PonzuConnection, gazer string) {
+func load(pc *PonzuConnection, gazer string) {
 	fmt.Printf("Ponzu scheme: %s\n", pc.Scheme)
 	fmt.Printf("Ponzu host: %s\n", pc.Host)
 	fmt.Printf("Ponzu port: %s\n", pc.Port)

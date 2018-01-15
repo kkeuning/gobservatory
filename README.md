@@ -41,27 +41,15 @@ go build
 ./gobservatory load --ponzuSecret="[redacted]" --ponzuUser="yourname@example.com"
 
 ```
-In the future, gobservatory will likely just prompt you to log into Ponzu.  For now, you need to provide a secret or token.
+To update Ponzu requires authentication.  If you provide no authentication, gobservatory will just prompt you to log into Ponzu.  Alternately, you can provide a secret or token.
 
 Replace "[redacted]" in the above with the "Client Secret" from Ponzu (e.g. http://localhost:8080/admin/configure from a logged in session).  This method works if you are running the gobservatory cli and gobservatory-cms on the same server.  
 
 ### Accessing a remote server:
-Instead of using the secret you can pass in a token remotely:
-
-To obtain the token, you need to log in to Ponzu:
-```
-curl -v -X "POST" "http://localhost:8080/admin/login" \
-     -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
-     --data-urlencode "email=yourname@example.com" \
-     --data-urlencode "password=redacted"
-```
-You will find the token in curl output as the value after "Set-Cookie: _token="
-
-Do not include the trailing semi-colon.  
-
+The easiest way to access a remote server is to omit authentication from the command line, letting gobservatory prompt you to log in.
 
 ```
-./gobservatory load --ponzuToken="[redacted]" --ponzuUser="yourname@example.com"
+./gobservatory load --ponzuHost="ponzu.example.com" --ponzuPort="8080"
 ```
 
 ## Managing your content:

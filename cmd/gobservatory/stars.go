@@ -1,19 +1,25 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/fatih/structs"
 	"github.com/google/go-github/github"
 	"github.com/kkeuning/gobservatory/gobservatory-cms/content"
 	"github.com/nilslice/jwt"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 )
 
 // StarCollection is a collection of Ponzu Stars
@@ -64,7 +70,7 @@ func (sc *StarCollection) Merge(s content.Star) *content.Star {
 }
 
 // PostToPonzu will load the collection to Ponzu
-func PostToPonzu(s content.Star, url string, pc PonzuConnection) error {
+func PostToPonzu(s content.Star, requrl string, pc *PonzuConnection) error {
 	ponzuClient := &http.Client{}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -90,7 +96,7 @@ func PostToPonzu(s content.Star, url string, pc PonzuConnection) error {
 	writer.Close()
 
 	// Create request
-	req, err := http.NewRequest("POST", url, body)
+	req, err := http.NewRequest("POST", requrl, body)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -125,6 +131,53 @@ func PostToPonzu(s content.Star, url string, pc PonzuConnection) error {
 		cookie.Name = "_token"
 		cookie.Value = auth.PonzuToken
 		req.Header.Add("Cookie", cookie.String())
+	case AuthMethod.None:
+		// Since no Ponzu auth was included, interactive login to Ponzu required for POST
+		r := bufio.NewReader(os.Stdin)
+		fmt.Print("Ponzu Username (Email): ")
+		username, _ := r.ReadString('\n')
+		fmt.Print("Ponzu Password: ")
+		bytePassword, _ := terminal.ReadPassword(int(syscall.Stdin))
+		password := string(bytePassword)
+		params := url.Values{}
+		params.Set("email", strings.TrimSpace(username))
+		params.Set("password", password)
+		body := bytes.NewBufferString(params.Encode())
+
+		// Create request
+		loginUrl := fmt.Sprintf("%s://%s:%s/admin/login", pc.Scheme, pc.Host, pc.Port)
+		loginReq, err := http.NewRequest("POST", loginUrl, body)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		// Headers
+		loginReq.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
+
+		// Need a client that does not follow redirects
+		loginClient := &http.Client{
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		}
+
+		loginResp, err := loginClient.Do(loginReq)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		for _, cookie := range loginResp.Cookies() {
+			if cookie.Name == "_token" {
+				// Upgrade the connection to use token auth for future requests
+				pc.Auth = PonzuTokenAuth(cookie.Value)
+				var newcookie http.Cookie
+				newcookie.Name = "_token"
+				newcookie.Value = cookie.Value
+				req.Header.Add("Cookie", newcookie.String())
+			}
+		}
 	}
 
 	parseFormErr := req.ParseForm()
